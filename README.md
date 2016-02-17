@@ -43,5 +43,5 @@ then optimizing by replacing subgraphs with links to already-completed tasks.
 
 # Hypothetical Kind Graph
 
-![Kind Graph](kinds.svg?raw=true)
+![Kind Graph](https://cdn.rawgit.com/djmitche/taskcluster-in-tree-taskgraph/master/kinds.svg)
 
