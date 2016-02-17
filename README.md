@@ -43,4 +43,5 @@ then optimizing by replacing subgraphs with links to already-completed tasks.
 
 # Hypothetical Kind Graph
 
-![Kind Graph](kinds.svg)
+![Kind Graph](kinds.svg?raw=true)
+
