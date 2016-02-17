@@ -1,0 +1,47 @@
+// see http://stamm-wilbrandt.de/GraphvizFiddle/
+digraph Kinds {
+graph [
+rankdir = "LR" 
+//rankdir = "TB"
+];
+node [
+fontsize = "16"
+shape = "ellipse"
+];
+edge []; 
+
+"docker-image" [label = "docker-image"];
+"toolchain" [label = "toolchain"];
+"gradle" [ label = "gradle" ];
+"vcs" [ label = "vcs" ];
+"compile" [ label = "compile" ];
+"make-check" [ label = "make-check" ];
+"lint" [ label = "lint" ];
+"test-zip" [ label = "test-zip" ];
+"assemble" [ label = "assemble" ];
+"mochitest" [ label = "mochitest" ];
+"unittest" [ label = "unittest" ];
+"talos" [ label = "talos" ];
+
+"compile" -> "docker-image" [ id = 0 ];
+"compile" -> "toolchain" [ id = 1 ];
+"compile" -> "gradle" [ id = 2 ];
+"compile" -> "vcs" [ id = 3 ];
+"make-check" -> "docker-image" [ id = 4 ];
+"make-check" -> "compile" [ id = 5 ];
+"lint" -> "vcs" [ id = 6 ];
+"lint" -> "docker-image" [ id = 7 ];
+"assemble" -> "docker-image" [ id = 8 ];
+"assemble" -> "vcs" [ id = 9 ];
+"assemble" -> "compile" [ id = 10 ];
+"test-zip" -> "vcs" [ id = 11 ];
+"mochitest" -> "test-zip" [ id = 12 ];
+"mochitest" -> "assemble" [ id = 13 ];
+"mochitest" -> "make-check" [ id = 14 ];
+"unittest" -> "test-zip" [ id = 15 ];
+"unittest" -> "assemble" [ id = 16 ];
+"unittest" -> "make-check" [ id = 17 ];
+"talos" -> "test-zip" [ id = 18 ];
+"talos" -> "assemble" [ id = 19 ];
+"talos" -> "make-check" [ id = 20 ];
+}
