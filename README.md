@@ -40,3 +40,7 @@ then optimizing by replacing subgraphs with links to already-completed tasks.
 * `mach taskgraph optimized [<expr>]` -- get the optimized task graph, optionally based on the target graph for `<expr>`.
 * `mach taskgraph visualize` -- generate a visualization of the given graph (maybe in `.dot` format?)
 * `mach taskgraph decision` -- run the whole task-graph generation process (expects to be run in a decision task)
+
+# Hypothetical Kind Graph
+
+![Kind Graph](kinds.svg)
