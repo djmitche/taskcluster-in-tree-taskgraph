@@ -45,3 +45,6 @@ then optimizing by replacing subgraphs with links to already-completed tasks.
 
 ![Kind Graph](https://cdn.rawgit.com/djmitche/taskcluster-in-tree-taskgraph/master/kinds.svg)
 
+# Task Graph Definition
+
+See the proposed [tasks/](/tasks) top-level Gecko directory.
