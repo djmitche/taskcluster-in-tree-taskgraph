@@ -28,3 +28,15 @@ then optimizing by replacing subgraphs with links to already-completed tasks.
 1. Optimize the target task graph based on kind-specific optimization methods.  The result is the "optimized task graph".
 1. Generate taskIds for all tasks in the optimized task graph.  Publish the full task graph with these taskIds included.
 1. Create tasks for all tasks in the optimized task grap.
+
+# Mach commands
+
+* `mach taskgraph tasks <query>` -- get a subset of the taskset based on the query, sorted by label.
+  This is useful for making diffs to see the effects of a change to task definitions.
+* `mach taskgraph full` -- generate the full task graph, including dependency links.
+  This is also useful for diffs, and for visualization.
+* `mach taskgraph target <expr>` -- get the target task graph, based on the given expression.
+  The expression can be try syntax, `--project` to specify a project, or a query.
+* `mach taskgraph optimized [<expr>]` -- get the optimized task graph, optionally based on the target graph for `<expr>`.
+* `mach taskgraph visualize` -- generate a visualization of the given graph (maybe in `.dot` format?)
+* `mach taskgraph decision` -- run the whole task-graph generation process (expects to be run in a decision task)
