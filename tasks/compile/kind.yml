@@ -1,6 +1,9 @@
 ---
 # specify the implementation of this kind (a Python module:class reference; see tasks/lib)
-implementation: "taskgraph.kind.build:BuildKind"
+implementation: "taskgraph.kind.compile:CompileKind"
+
+tasks:
+  glob: *-task.yml
 
 # dependency links (common to all kinds)
 links:
@@ -9,7 +12,7 @@ links:
 - name: linux-image   # name for this link
   kind: docker-image  # kind to which the link points
   from: "task.platform in ('linux32', 'linux64', 'macosx64')"  # query for tasks in this kind to link from
-  to: "task.image == 'desktop-test'"  # query for tasks in the target kind to link to
+  to: "task.image == 'desktop-test'"                           # query for tasks in the target kind to link to
 
 # Mac builds require a pre-built clang toolchain
 - name: macosx-toolchain
@@ -27,9 +30,14 @@ variations:
   # these will parameterize each task defintion
   build-type: ["dbg", "opt"]
 
-# criteria for replacing tasks of this kind with existing tasks; note that ancestors of the
-# task are implicitly accounted for; for example, if the docker image or toolchain changes,
-# the corresponding compile tasks will be re-run automatically.
+# criteria for replacing tasks of this kind with existing tasks
 optimizations:
 - for: all  # potentially replace any task
-  .. not sure here
+  cover:
+    links: all
+    vcs-last-modified:
+    - compiled-files
+    - build-system
+    - mozharness
+    - compile-task-kind
+    - taskgraph

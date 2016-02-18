@@ -1,0 +1,20 @@
+---
+# specify the implementation of this kind (a Python module:class reference; see tasks/lib)
+implementation: "taskgraph.kind.docker:DockerImageKind"
+
+tasks:
+  glob: *-task.yml
+
+# criteria for replacing tasks of this kind with existing tasks
+optimizations:
+- for: all
+  cover:
+    links: all
+    # for docker images, we want to use the directory hash so that
+    # multiple try pushes with the same docker-image tweak don't all
+    # trigger (very long) docker image rebuilds
+    directory-hash:
+    - "testing/docker/{{ task.image }}"  # XXX not sure how interpolation will work here
+    vcs-last-modified:
+    - docker-image-task-kind
+    - taskgraph

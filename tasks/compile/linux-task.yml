@@ -1,0 +1,64 @@
+---
+# this is two task descriptions in one, parameterized on arch
+variations:
+  arch: ['32', '64']
+
+attributes:
+  platform: "linux{{arch}}"
+
+
+task:
+  metadata:
+      name: '[TC] Linux{{arch}} {{build-type}}'
+      description: 'Linux{{arch}} {{build-type}}'
+
+  scopes:
+    - 'docker-worker:cache:level-{{level}}-{{project}}-build-linux{{arch}}-{{build-type}}-workspace'
+    - 'docker-worker:cache:tooltool-cache'
+    - 'docker-worker:relengapi-proxy:tooltool.download.public'
+
+  routes:
+    - 'index.buildbot.branches.{{project}}.linux{{arch}}'
+    - 'index.buildbot.revisions.{{head_rev}}.{{project}}.linux{{arch}}'
+
+  workerType: level--{{level}}-{{project}}-linux{{arch}}-compile
+
+  payload:
+    image:
+      type: 'task-image'
+      path: 'public/image.tar'
+      # reference to the linked task
+      taskId: '{{#task_id_for_link}}linux-image{{/task_id_for_link}}'
+    cache:
+      tooltool-cache: '/home/worker/tooltool-cache'
+      level-{{level}}-{{project}}-build-linux{{arch}}-{{build-type}}-workspace: '/home/worker/workspace'
+    features:
+      relengAPIProxy: true
+    env:
+      MOZHARNESS_SCRIPT: 'mozharness/scripts/fx_desktop_build.py'
+      MOZHARNESS_CONFIG: 'builds/releng_base_linux_{{arch}}_builds.py balrog/production.py'
+      MH_BRANCH: {{project}}
+      MH_BUILD_POOL: taskcluster
+      TOOLTOOL_CACHE: '/home/worker/tooltool-cache'
+      NEED_XVFB: true
+    maxRunTime: 36000
+    command: ["/bin/bash", "bin/build.sh"]
+
+  extra:
+    treeherderEnv:
+      - production
+      - staging
+    treeherder:
+      groupSymbol: tc
+      groupName: Submitted by taskcluster
+      symbol: B
+      machine:
+        # see https://github.com/mozilla/treeherder/blob/master/ui/js/values.js
+        platform: "linux{{arch}}"
+    # Rather then enforcing particular conventions we require that all build
+    # tasks provide the "build" extra field to specify where the build and tests
+    # files are located, relative to the task's artifacts URL
+    locations:
+      build: 'public/build/target.tar.bz2'
+      mozharness: 'public/build/mozharness.zip'
+      test_packages: 'public/build/test_packages.json'

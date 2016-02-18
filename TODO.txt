@@ -1,7 +1,4 @@
 * cron.yml
 * .taskcluster.yml
-* better syntax for optimization
-* example task def'n
-  * ancestor reference
 * templating
   * some kind of transform sequence abstraction for kinds?
