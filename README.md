@@ -33,7 +33,26 @@ For example, from the assemble kind to the compile kind, only tasks with matchin
 (*) A kind can depend on itself, though.  You can safely ignore that detail.
 Tasks can also be generated within a kind using explicit dependencies.
 
-# Graph Generation Process
+# Decision Task
+
+The decision task is the first task created when a new graph begins.
+It is responsible for creating the rest of the task graph.
+
+The decision task for pushes is defined in [`.taskcluster.yml`](/.taskcluster.yml).
+
+We also have a number of periodic jobs:
+
+ * nightly builds
+ * periodic test runs such as [bootstrap tests](https://bugzilla.mozilla.org/show_bug.cgi?id=1245969)
+ * rebuilds of toolchains and other prerequisites
+ * rebuilds of docker images with up-to-date packages
+
+All of these can be controlled from [`.cron.yml`](/.cron.yml).
+A periodic task polls this file and creates tasks contained within as scheduled.
+
+## Graph Generation
+
+Graph generation, run via `mach taskgraph decision`, proceeds as follows:
 
 1. For all kinds, generate all tasks.  The result is the "full task set"
 1. Create links between tasks using kind-specific query expressions.  The result is the "full task graph".
@@ -46,6 +65,9 @@ Tasks can also be generated within a kind using explicit dependencies.
 1. Create tasks for all tasks in the optimized task grap.
 
 # Mach commands
+
+A number of mach subcommands are avaialable to make this complex system more accesssible to those trying to understand or modify it.
+They allow developers to run portions of the graph-generation process and output the results.
 
 * `mach taskgraph tasks <query>` -- get a subset of the taskset based on the query, sorted by label.
   This is useful for making diffs to see the effects of a change to task definitions.

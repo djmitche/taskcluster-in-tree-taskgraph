@@ -1,0 +1,45 @@
+---
+version: 0
+metadata:
+  name: "Gecko Decision Task"
+tasks:
+  - provisionerId: aws-provisioner-v1
+    workerType: gecko-decision
+    schedulerId: task-graph-scheduler
+    routes:
+    priority: normal
+    retries: 5
+    deadline: "1 day"
+    expires: "1 year"
+    scopes:
+    - docker-worker:cache:level-3-mozilla-central-tc-vcs-public-sources
+    payload:
+      env:
+        GECKO_HEAD_REPOSITORY: {{ push.repository }}
+        GECKO_HEAD_REV: {{ push.revision }}
+      cache:
+        level-3-mozilla-central-tc-vcs-public-sources: "/home/worker/.tc-vcs/"
+      image: taskcluster/builder:0.5.11
+      maxRunTime: 1800
+      command:
+      - "/bin/bash"
+      - "-cx"
+      - 'mkdir -p /home/worker/artifacts && checkout-gecko workspace && cd workspace/gecko
+        && ./mach taskgraph decision --pushlog-id=''{{ push.id }}'' --project=''mozilla-central''
+        --message='' '' --owner=''jolesen@mozilla.com'' --level=''3'' --revision-hash=''{{ push.revision }}''
+        --extend-graph > /home/worker/artifacts/graph.json
+
+    '
+    metadata:
+      owner: mozilla-taskcluster-maintenance@mozilla.com
+      source: {{push.repository}}/raw-file/{{ push.revision }}/.taskcluster.yml
+      name: Initial decision task for mozilla-central pushes
+      description: |
+        This is the single most important task as it decides how all other tasks
+        get built.
+    tags:
+      createdForUser: {{push.email}}
+    extra:
+      treeherder:
+        symbol: D
+

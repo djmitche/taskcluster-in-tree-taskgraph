@@ -1,4 +1,0 @@
-* cron.yml
-* .taskcluster.yml
-* templating
-  * some kind of transform sequence abstraction for kinds?
