@@ -17,6 +17,22 @@ then optimizing by replacing subgraphs with links to already-completed tasks.
 * *Optimization* - replacement of a task in a graph with an equivalent, already-completed task, or a null
   task, avoiding repetition of work.
 
+# Dependencies
+
+Dependency links between tasks are always between different kinds(*).
+
+Here is a hypothetical graph of the relationships between kinds for Gecko tests.
+Note that this splits out the "compile" and "assemble" stages; this refers to artifact builds, which would only require the "assemble" stage.
+
+![Kind Graph](https://cdn.rawgit.com/djmitche/taskcluster-in-tree-taskgraph/master/kinds.svg)
+
+Each node in this graph contains many tasks, so each edge potentially represents _n*m_ task dependencies.
+We use the query language to filter these dependencies down.
+For example, from the assemble kind to the compile kind, only tasks with matching platform are connected with a dependency.
+
+(*) A kind can depend on itself, though.  You can safely ignore that detail.
+Tasks can also be generated within a kind using explicit dependencies.
+
 # Graph Generation Process
 
 1. For all kinds, generate all tasks.  The result is the "full task set"
@@ -41,10 +57,18 @@ then optimizing by replacing subgraphs with links to already-completed tasks.
 * `mach taskgraph visualize` -- generate a visualization of the given graph (maybe in `.dot` format?)
 * `mach taskgraph decision` -- run the whole task-graph generation process (expects to be run in a decision task)
 
-# Hypothetical Kind Graph
-
-![Kind Graph](https://cdn.rawgit.com/djmitche/taskcluster-in-tree-taskgraph/master/kinds.svg)
-
 # Task Graph Definition
 
 See the proposed [tasks/](/tasks) top-level Gecko directory.
+
+Each subdirectory of this directory contains a `kind.yml` describing the kind.
+Just about everything about a kind can be customized in Python.
+This allows wild can crazy stuff in the "fringe" kinds that only a few people care about, with a more measured approach to the core kinds for building and testing the browser.
+For example, we might want to generate a large tree of tasks to build and test each Rust crate that is included in the browser, using introspection to determine the list of crates.
+That code will not clutter up the core build and test classes.
+
+Tasks are (normally) defined in YAML files fairly similar to the existing mechanism.
+The kind implementation is free to apply any kind of transformation to these task definitions.
+For example, the compile implementation will drop the workspace cache for try jobs (clobbering).
+It might also automatically add scopes for every cache and attach a coalescing key and route.
+Again, this functionality is located "close" to the affected task definitions and is thus easy to find.
