@@ -17,6 +17,18 @@ then optimizing by replacing subgraphs with links to already-completed tasks.
 * *Optimization* - replacement of a task in a graph with an equivalent, already-completed task, or a null
   task, avoiding repetition of work.
 
+## Kinds
+
+Kinds are the focal point of this system.
+They provide an interface between the large-scale graph-generation process and the small-scale task-definition needs of different kinds of tasks.
+Each kind may implement task generation differently.
+Some kinds may generate task definitions entirely internally (for example, symbol-upload tasks are all alike, and very simple), while other kinds may do little more than parse a directory of YAML files.
+
+A `kind.yml` file contains data about the kind, as well as referring to a Python class implementing the kind.
+That implementation may rely on lots of code shared with other kinds, or contain a completely unique implementation of some functionality.
+
+The result is a nice segmentation of implementation so that the more esoteric in-tree projects can do their crazy stuff in an isolated kind without making the bread-and-butter build and test configuration more complicated.
+
 # Dependencies
 
 Dependency links between tasks are always between different kinds(*).
