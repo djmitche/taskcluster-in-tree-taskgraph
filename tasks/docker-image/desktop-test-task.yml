@@ -2,6 +2,12 @@
 attributes:
   image: desktop-test
 
+# links can be specified in a task definition, too
+links:
+- name: ubuntu1204-test
+  kind: docker-image
+  to: "task.image == 'ubuntu1204-test'"
+
 task:
   created: '{{now}}'
   deadline: '{{#from_now}}24 hours{{/from_now}}'
