@@ -37,7 +37,7 @@ task:
     env:
       MOZHARNESS_SCRIPT: 'mozharness/scripts/fx_desktop_build.py'
       MOZHARNESS_CONFIG: 'builds/releng_base_linux_{{arch}}_builds.py balrog/production.py'
-      MH_BRANCH: {{project}}
+      MH_BRANCH: "{{project}}"
       MH_BUILD_POOL: taskcluster
       TOOLTOOL_CACHE: '/home/worker/tooltool-cache'
       NEED_XVFB: true
