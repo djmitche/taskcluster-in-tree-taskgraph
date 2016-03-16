@@ -1,3 +1,6 @@
+attributes:
+  platform: "macosx64"
+
 task:
   metadata:
       name: '[TC] MacOSX64 {{build-type}}'

@@ -2,6 +2,7 @@
 IMPLEMENTATION = "taskgraph.kind.compile:CompileKind"
 
 TASKS = [
+    # TODO: allow variations here (re-parse the same file with multiple inputs)
     {"glob": "*-task.yml"}
 ]
 
@@ -13,7 +14,7 @@ DEPENDENCIES = [
         "kind": "docker-image",  # kind to which the link points
         # note this expression could also be a lambda.  "self" is the task
         # in this kind, and "task" is the task in the target kind
-        "where:": "self.platform in ('linux32', 'linux64', 'macosx64') "
+        "where": "self.platform in ('linux32', 'linux64', 'macosx64') "
                   "and task.image == 'desktop-test'",
     },
 

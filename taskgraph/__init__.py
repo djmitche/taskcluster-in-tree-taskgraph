@@ -4,6 +4,7 @@ import sandbox
 import functools
 
 from taskgraph.types import Task, TaskGraph
+from taskgraph.util import taskexpr
 
 def memoized_property(f):
     @functools.wraps(f)
@@ -23,8 +24,9 @@ class TaskGraphGenerator(object):
     generation.
     """
 
-    def __init__(self, root):
+    def __init__(self, root, target_expression):
         self.root = root
+        self.target_expression = target_expression
 
 
     @memoized_property
@@ -86,3 +88,22 @@ class TaskGraphGenerator(object):
         for t in taskgraph:
             t.dependencies = t.kind.get_task_dependencies(t, taskgraph)
         return taskgraph
+
+    @memoized_property
+    def target_task_graph(self):
+        full_task_graph = self.full_task_graph
+        target_tasks = [t for t in full_task_graph
+                        if taskexpr.evaluate(self.target_expression, task=t)]
+        # compute the transitive closure of that set of tasks
+        seen = set([t.label for t in target_tasks])
+        for t in target_tasks:
+            for dep in t.dependencies:
+                if dep[0] not in seen:
+                    target_tasks.append(full_task_graph[dep[0]])
+                    seen.add(dep[0])
+
+        g = TaskGraph()
+        for t in target_tasks:
+            g.add_task(t)
+        return g
+

@@ -14,14 +14,21 @@ class Task(object):
     - extra: extra kind-specific metadata
     """
 
-    def __init__(self, kind, label, attributes=[], task={}, dependencies=[],
+    def __init__(self, kind, label, attributes={}, task={}, dependencies=[],
             **extra):
         self.kind = kind
         self.label = label
-        self.attributes = attributes
         self.task = task
         self.dependencies = dependencies
         self.extra = extra
+        self.attributes = attributes
+
+        # assign attributes directly, ensuring they do not conflcit with
+        # the other object attributes
+        invalid = set(attributes) & set(self.__dict__)
+        if invalid:
+            raise AttributeError("invalid attribute names {}".format(", ".join(invalid)))
+        self.__dict__.update(attributes)
 
     def __repr__(self):
         return pprint.pformat({
@@ -55,6 +62,9 @@ class TaskGraph(object):
 
     def __str__(self):
         return "\n".join("{}:\n{}".format(l, t) for (l, t) in self.tasks.iteritems())
+
+    def __getitem__(self, label):
+        return self.tasks[label]
 
     def __iter__(self):
         return self.tasks.itervalues()
