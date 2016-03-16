@@ -5,24 +5,23 @@ TASKS = [
     {"glob": "*-task.yml"}
 ]
 
-# dependency links (common to all kinds)
-LINKS = [
+# dependency dependencies (common to all kinds)
+DEPENDENCIES = [
     # Linux-based builds require a docker image
     {
         "name": "linux-image",   # name for this link
         "kind": "docker-image",  # kind to which the link points
-        # query for tasks in this kind to link from
-        "from": "task.platform in ('linux32', 'linux64', 'macosx64')",
-        # query for tasks in the target kind to link to
-        "to": "task.image == 'desktop-test'",
+        # note this expression could also be a lambda.  "self" is the task
+        # in this kind, and "task" is the task in the target kind
+        "where:": "self.platform in ('linux32', 'linux64', 'macosx64') "
+                  "and task.image == 'desktop-test'",
     },
 
     # Mac builds require a pre-built clang toolchain
     {
         "name": "macosx-toolchain",
         "kind": "toolchain",
-        "from": "task.platform == 'macosx64'",
-        "to": "task.toolchain == 'macosx64-clang'",
+        "where": "self.platform == 'macosx64' and task.toolchain == 'macosx64-clang'",
     },
     {
         "name": "vcs",
@@ -42,7 +41,7 @@ VARIATIONS = {
 OPTIMIZATIONS = [{
     "for": "all",  # potentially replace any task
     "cover": {
-        "links": "all",
+        "dependencies": "all",
         "vcs-last-modified": [
             "compiled-files",
             "build-system",

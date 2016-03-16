@@ -8,7 +8,7 @@ TASKS = [
 OPTIMIZATIONS = [{
     "for": "all",
     "cover": {
-        "links": "all",
+        "dependencies": "all",
         # for docker images, we want to use the directory hash so that
         # multiple try pushes with the same docker-image tweak don't all
         # trigger (very long) docker image rebuilds

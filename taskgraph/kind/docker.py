@@ -1,4 +1,4 @@
 from . import base, mixins
 
-class DockerImageKind(mixins.YamlLoader, base.Kind):
+class DockerImageKind(mixins.YamlLoader, mixins.ExpressionDependencies, base.Kind):
     pass
