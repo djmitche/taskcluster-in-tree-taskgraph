@@ -1,4 +1,5 @@
 import pprint
+import collections
 
 class Task(object):
     """
@@ -22,6 +23,8 @@ class Task(object):
         self.dependencies = dependencies
         self.extra = extra
         self.attributes = attributes
+        self.optimization_key = None
+        self.task_id = None
 
         # assign attributes directly, ensuring they do not conflcit with
         # the other object attributes
@@ -36,6 +39,8 @@ class Task(object):
             'attributes': self.attributes,
             'task': self.task,
             'dependencies': self.dependencies,
+            'optimization_key': self.optimization_key,
+            'task_id': self.task_id,
         })
 
 
@@ -68,3 +73,40 @@ class TaskGraph(object):
 
     def __iter__(self):
         return self.tasks.itervalues()
+
+    def transitive_closure(self, tasks):
+        """
+
+        Create a new TaskGraph, a subset of this one, containing all tasks in `tasks` as well as their dependencies, and no more.
+
+        @type tasks: lits of Tasks
+        """
+        # compute the transitive closure of that set of tasks
+        # TODO: move to TaskGraph
+        seen = set([t.label for t in tasks])
+        tasks = tasks[:]
+        for t in tasks:
+            for l, _ in t.dependencies:
+                if l not in seen:
+                    tasks.append(self[l])
+                    seen.add(l)
+
+        taskgraph = TaskGraph()
+        for t in tasks:
+            taskgraph.add_task(t)
+        return taskgraph
+
+    def depth_first(self, functor):
+        # keep a to-do list of nodes to visit, deferring anything which hasn't
+        # yet had all of its dependencies visited.  This ain't fast.
+        todo = collections.deque(self.tasks.itervalues())
+        done = set()
+
+        while todo:
+            task = todo.popleft()
+            if all(l in done for l, _ in task.dependencies):
+                functor(task)
+                done.add(task.label)
+            else:
+                # go to the end of the line
+                todo.append(task)

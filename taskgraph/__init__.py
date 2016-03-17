@@ -24,9 +24,10 @@ class TaskGraphGenerator(object):
     generation.
     """
 
-    def __init__(self, root, target_expression):
+    def __init__(self, root, target_expression, optimization_finder):
         self.root = root
         self.target_expression = target_expression
+        self.optimization_finder = optimization_finder
 
 
     @memoized_property
@@ -70,40 +71,74 @@ class TaskGraphGenerator(object):
         """
         The full task set: all tasks defined by any kind
 
-        @type: TaskGraph (with no edges)
+        @type: list of Tasks
         """
 
-        graph = TaskGraph()
+        taskset = []
         for kind in self.kinds.itervalues():
             for task in kind.load_tasks():
-                graph.add_task(task)
-        return graph
+                taskset.append(task)
+        return taskset
 
     @memoized_property
     def full_task_graph(self):
         """
         The full task graph: the full task set, but linked with dependency edges
+
+        @type: TaskGraph
         """
-        taskgraph = self.full_task_set
-        for t in taskgraph:
+        taskset = self.full_task_set
+        taskgraph = TaskGraph()
+        for t in taskset:
+            taskgraph.add_task(t)
+        for t in taskset:
             t.dependencies = t.kind.get_task_dependencies(t, taskgraph)
         return taskgraph
 
     @memoized_property
+    def target_task_set(self):
+        """
+        The set of targetted tasks
+
+        @type: list of Tasks
+        """
+        return [t for t in self.full_task_graph
+                if taskexpr.evaluate(self.target_expression, task=t)]
+
+    @memoized_property
     def target_task_graph(self):
-        full_task_graph = self.full_task_graph
-        target_tasks = [t for t in full_task_graph
-                        if taskexpr.evaluate(self.target_expression, task=t)]
-        # compute the transitive closure of that set of tasks
-        seen = set([t.label for t in target_tasks])
-        for t in target_tasks:
-            for dep in t.dependencies:
-                if dep[0] not in seen:
-                    target_tasks.append(full_task_graph[dep[0]])
-                    seen.add(dep[0])
+        return self.full_task_graph.transitive_closure(self.target_task_set)
 
-        g = TaskGraph()
-        for t in target_tasks:
-            g.add_task(t)
-        return g
+    @memoized_property
+    def optimized_task_graph(self):
+        taskgraph = self.target_task_graph
+        def visit(task):
+            task.optimization_key = task.kind.get_task_optimization_key(task, taskgraph)
+        taskgraph.depth_first(visit)
 
+        # look up all tasks in the index at once
+        optimization_keys = filter(None, (t.optimization_key for t in taskgraph))
+        optimizations = self.optimization_finder(optimization_keys)
+
+        # assign the taskId for each task that has been successfully optimized away
+        for task in taskgraph:
+            task_id = optimizations.get(task.optimization_key)
+            if task_id:
+                task.task_id = task_id
+
+        # now replace any dependencies on tasks that have been optimized away with
+        # a direct dependency on the taskId TODO link this properly, rather than relying
+        # on KeyError
+        def replace(label, name):
+            task_id = taskgraph[label].task_id
+            if task_id:
+                return task_id, name
+            else:
+                return label, name
+        for task in taskgraph:
+            task.dependencies = [replace(l, n) for l, n in task.dependencies]
+
+        # re-compute the transitive closure of the subset of the graph.  Note
+        # that this may include optimized tasks if they are in the
+        # target_task_set.
+        return taskgraph.transitive_closure(self.target_task_set)

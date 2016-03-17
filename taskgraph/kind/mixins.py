@@ -1,3 +1,4 @@
+import hashlib
 import os
 import yaml
 import glob
@@ -40,6 +41,8 @@ class ExpressionDependencies(object):
     """
     Link tasks to their dependencies based on simple expressions either in
     self.dependencies or task.extra['dependencies']
+
+    Implements: `get_task_dependencies`
     """
 
     def get_task_dependencies(self, task, taskgraph):
@@ -56,3 +59,48 @@ class ExpressionDependencies(object):
             for tgt in selected_tasks:
                 rv.append((tgt.label, dep['name']))
         return rv
+
+
+class DefaultOptimizer(object):
+
+    """
+    Optimize based on the OPTIMIZATIONS context.  Each optimization type is
+    defined by an `optimize_input_<type>` method, so subclasses may add custom
+    types.
+
+    Implements: `get_task_optimization_key`
+    """
+
+    def get_task_optimization_key(self, task, taskgraph):
+        optimizations = [
+                opt for opt in self.context.get('OPTIMIZATIONS', [])
+                if taskexpr.evaluate(opt.get('where', lambda task: True), task=task)]
+        if len(optimizations) > 1:
+            raise RuntimeError('Task {} matches multiple optimizations ({}); tasks '
+                               'much match no more than one optimization.'.format(
+                                   task.label, ', '.join(o.name for o in optimizations)))
+        if not optimizations:
+            return None
+        optimization = optimizations[0]
+
+        # NOTE: it's important that all inputs to this hash are stable; generally that
+        # means that the components of the hash are always in the same order, and use
+        # the same syntax.
+        m = hashlib.sha1()
+        for input in optimization.get('inputs', []):
+            method = getattr(self, 'optimize_input_' + input['type'].replace('-', '_'))
+            update = method(input, task, taskgraph)
+            m.update(update)
+        rv = '{}.{}'.format(optimization['name'], m.hexdigest())
+        return rv
+
+    def optimize_input_vcs_files(self, input, task, taskgraph):
+        # XXX this would do some fanciness to find the most recent revision in
+        # which any of these files changed (and this would be mozilla-specific,
+        # not in taskgraph)
+        return 'TODO'
+
+    def optimize_input_dependencies(self, input, task, taskgraph):
+        return '\n'.join(
+            taskgraph[l].optimization_key
+            for l, _ in task.dependencies)

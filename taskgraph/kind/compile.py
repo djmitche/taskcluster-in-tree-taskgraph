@@ -1,4 +1,4 @@
 from . import base, mixins
 
-class CompileKind(mixins.YamlLoader, mixins.ExpressionDependencies, base.Kind):
+class CompileKind(mixins.YamlLoader, mixins.ExpressionDependencies, mixins.DefaultOptimizer, base.Kind):
     pass

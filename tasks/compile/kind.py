@@ -39,16 +39,21 @@ VARIATIONS = {
 }
 
 # criteria for replacing tasks of this kind with existing tasks
+# each task must be matched by at most one optimization (via "where")
 OPTIMIZATIONS = [{
-    "for": "all",  # potentially replace any task
-    "cover": {
-        "dependencies": "all",
-        "vcs-last-modified": [
-            "compiled-files",
-            "build-system",
-            "mozharness",
-            "compile-task-kind",
-            "taskgraph",
-        ]
-    }
+    "where": "True",  # potentially replace any task
+    "name": "compile",
+    "inputs": [
+        {'type': 'dependencies'},
+        {
+            'type': 'vcs-files',
+            'files': [
+                "compiled-files",
+                "build-system",
+                "mozharness",
+                "compile-task-kind",
+                "taskgraph",
+            ],
+        }
+    ],
 }]
